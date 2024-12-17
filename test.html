@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Video Loader</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        iframe {
+            display: block;
+            width: 100%;
+            height: 100vh;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Iframe -->
+    <iframe id="videoIframe" src="" scrolling="no" allowfullscreen></iframe>
+
+    <script>
+        // Movie iframe sources
+        const movieSources = {
+            moviesapi: "https://moviesapi.club/movie/${id}",
+            vidsrc: "https://vidsrc.dev/embed/movie/${id}",
+            flicky: "https://flicky.host/embed/anime/movie.php?tmdb-id=${id}"
+        };
+
+        // TV iframe sources
+        const tvSources = {
+            moviesapi: "https://moviesapi.club/tv/${id}/${season}/${episode}",
+            vidsrc: "https://vidsrc.dev/embed/tv/${id}/${season}/${episode}",
+            flicky: "https://flicky.host/embed/anime/serie.php?tmdb-id=${id}&season=${season}&episode=${episode}"
+        };
+
+        // Utility to get query parameters
+        function getQueryParams() {
+            const params = {};
+            const queryString = window.location.search.substring(1);
+            const pairs = queryString.split("&");
+            pairs.forEach(pair => {
+                const [key, value] = pair.split("=");
+                params[key] = decodeURIComponent(value);
+            });
+            return params;
+        }
+
+        // Main function to set iframe
+        function setIframe() {
+            const params = getQueryParams();
+            const id = params.id;
+            const server = params.server; // Server name: moviesapi, vidsrc, flicky
+            const season = params.s; // Season number
+            const episode = params.e; // Episode number
+            const iframe = document.getElementById("videoIframe");
+
+            if (!id || !server) {
+                iframe.outerHTML = "<h2>Invalid Parameters! Required: id and server</h2>";
+                return;
+            }
+
+            let iframeSrc = "";
+            if (season && episode) {
+                // For TV shows
+                if (!tvSources[server]) {
+                    iframe.outerHTML = "<h2>Invalid Server!</h2>";
+                    return;
+                }
+                iframeSrc = tvSources[server]
+                    .replace("${id}", id)
+                    .replace("${season}", season)
+                    .replace("${episode}", episode);
+            } else {
+                // For Movies
+                if (!movieSources[server]) {
+                    iframe.outerHTML = "<h2>Invalid Server!</h2>";
+                    return;
+                }
+                iframeSrc = movieSources[server].replace("${id}", id);
+            }
+
+            // Set the iframe source
+            iframe.src = iframeSrc;
+        }
+
+        // Call the function on page load
+        setIframe();
+    </script>
+</body>
+</html>
